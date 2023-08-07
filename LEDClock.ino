@@ -2,13 +2,13 @@
 #include <TimeLib.h>
 
 #define LED_PIN     6
-#define NUM_LEDS    60
-#define BRIGHTNESS  10
+#define NUM_LEDS    144
+#define BRIGHTNESS  255
 #define LED_TYPE    WS2812
 #define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
 
-#define UPDATES_PER_SECOND 2
+#define UPDATES_PER_SECOND 1
 
 void setup() {
   // put your setup code here, to run once:
@@ -16,7 +16,7 @@ void setup() {
    Serial.println();
 
   delay(3000);
-  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
   FastLED.setBrightness(BRIGHTNESS);
 
   setTime(1690997043);
@@ -26,17 +26,21 @@ void loop() {
   // put your main code here, to run repeatedly:
   // Turn the LED on, then pause
   for (int i = 0 ; i < NUM_LEDS ; i++) {
-    leds[i] = CRGB::Red;
+    if (i == second()) {
+      leds[i] = CRGB::Blue;
+    }
+    else if (i == minute()) {
+      leds[i] = CRGB::White;
+    } else if (i == hour() * 5) {
+      leds[i] = CRGB::Green;
+    }
+    else {
+      leds[i] = CRGB::Black;
+    }
   }
+
   FastLED.show();
   delay(1000 / UPDATES_PER_SECOND);
-  // Now turn the LED off, then pause
-  for (int i = 0 ; i < NUM_LEDS ; i++) {
-    leds[i] = CRGB::Black;
-  }
-  FastLED.show();
-  delay(1000 / UPDATES_PER_SECOND);
-  digitalClockDisplay();
 }
 
 void digitalClockDisplay(){
