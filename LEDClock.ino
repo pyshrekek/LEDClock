@@ -1,29 +1,36 @@
 #include <FastLED.h>
 #include <TimeLib.h>
+#include <NewPing.h>
 
 #define LED_PIN     6
 #define START_LED   24
 #define END_LED     142
+#define TRIG_PIN    9
+#define ECHO_PIN    10
 #define BRIGHTNESS  32
 #define LED_TYPE    WS2812
 #define COLOR_ORDER GRB
-#define NUM_LEDS END_LED - START_LED + 1
+#define CLOCK_SIZE  (END_LED - START_LED + 1)
+#define NUM_LEDS    288
+#define MAX_DIST    400
 
 CRGB leds[NUM_LEDS];
 
+NewPing sonar(TRIG_PIN, ECHO_PIN, MAX_DIST);
 
 
-int ledsPerMinute = (NUM_LEDS) / 60;
-int ledsPerHour = (NUM_LEDS) / 12;
+
+double ledsPerMinute = CLOCK_SIZE / 60.0;
+double ledsPerHour = CLOCK_SIZE / 12.0;
 
 #define UPDATES_PER_SECOND 1
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
-   Serial.println();
 
   delay(3000);
+
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
   FastLED.setBrightness(BRIGHTNESS);
 
@@ -46,24 +53,36 @@ void loop() {
   //     leds[i] = CRGB::Black;
   //   }
   // }
-  int minLed = int(minute() * ledsPerMinute) % NUM_LEDS + START_LED;
-  int hourLed = int(hour() * ledsPerHour) % NUM_LEDS + START_LED;
+  int minLed = int(30 * ledsPerMinute) % CLOCK_SIZE + START_LED;
+  int hourLed = int((3 * ledsPerHour)) % CLOCK_SIZE + START_LED;
 
-  for(int i = START_LED; i <= END_LED; i++) {
-    if(i == minLed || i == hourLed) {
-      leds[i] = CRGB::White;
-    }else {
+  int distance = sonar.ping_cm();
+  Serial.println(distance);
+  
+  if(distance <= 20) {
+    Serial.println("on");
+    for(int i = START_LED; i <= END_LED; i++) {
+      if(i == minLed) {
+        leds[i] = CRGB::Green;
+      }else if (i == hourLed) {
+        leds[i] = CRGB::Purple;
+      }else {
+        leds[i] = CRGB::Black;
+      }
+    }
+  }else {
+    for(int i = START_LED; i <= END_LED; i++) {
       leds[i] = CRGB::Black;
     }
   }
-  Serial.print("daniel haokun patosai steven xu");
-  Serial.print(hour());
-  Serial.print(hourLed);
-  Serial.print(minLed);
+
+  leds[END_LED] = CRGB::Red;
+  leds[START_LED] = CRGB::Blue;
+  Serial.println(minute());
   
 
   FastLED.show();
-  
+  // digitalClockDisplay();
   delay(1000 / UPDATES_PER_SECOND);
 }
 
